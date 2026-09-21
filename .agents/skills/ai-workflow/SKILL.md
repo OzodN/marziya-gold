@@ -28,8 +28,8 @@ Once approved:
    ```json
    {
      "name": "FeatureBuilder",
-     "description": "Writes code and runs tests to implement a feature.",
-     "system_prompt": "You are a Feature Builder. You must write code according to the plan. You CANNOT claim completion until you run `.\\scripts\\verify.ps1` and receive an exit code of 0. Max retries: 3.",
+     "description": "Writes code to implement a feature.",
+     "system_prompt": "You are a Feature Builder. Write code according to the plan. You may run tests (e.g. `.\\scripts\\verify.ps1`) locally for debugging, but your result is informational only. Do NOT mark the task as verified. When finished, commit your code and message the Orchestrator. Max retries: 3.",
      "enable_write_tools": true,
      "enable_subagent_tools": false,
      "enable_mcp_tools": false
@@ -42,11 +42,13 @@ Once approved:
    `git checkout -b feature/<task-name>`
 
 ### 4. IMPLEMENTATION -> VERIFICATION
-1. The `FeatureBuilder` works in the shared workspace branch.
-2. It MUST run `.\scripts\verify.ps1` (or equivalent test command).
-3. If tests fail, it retries up to 3 times.
-4. If it succeeds (exit code 0), it messages you (Lead Orchestrator) that VERIFICATION is complete.
-5. If it fails 3 times, it messages you with failure, and you transition to `BLOCKED_ESCALATED`.
+1. The `FeatureBuilder` works in the isolated branch workspace, commits changes, and reports completion to you. A successful subagent message alone must NEVER permit merge.
+2. **Root Orchestrator** must independently check out the feature branch:
+   `git checkout feature/<task-name>`
+3. **Root Orchestrator** executes the verification command:
+   `powershell -ExecutionPolicy Bypass -File .\scripts\verify.ps1`
+4. If the test fails (non-zero exit code), Orchestrator sends the error log back to the subagent for another attempt (up to 3 retries).
+5. If the test succeeds (exit code 0), Orchestrator proceeds to REVIEW.
 
 ### 5. VERIFICATION -> REVIEW
 1. Once the subagent reports success, the Orchestrator runs `git diff main...feature/<task-name>` to review the changes.
