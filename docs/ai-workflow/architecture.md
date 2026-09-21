@@ -54,7 +54,10 @@ Every task follows a strict state transition model managed in `task.md`.
 
 1. **`BACKLOG`**: Unprocessed user request or feature idea.
 2. **`PLANNING`**: Orchestrator researches and drafts `implementation_plan.md`.
-3. **`PENDING_APPROVAL`**: **Human Gate.** Orchestrator pauses execution until the user explicitly approves the plan.
+3. **`PENDING_APPROVAL`**: 
+   * **Mechanical Human Gate.** For high-impact changes, the Orchestrator MUST generate `implementation_plan.md` using the `write_to_file` tool with `ArtifactMetadata.RequestFeedback = true`. This mechanically yields control to the user via a 'Proceed' button.
+   * High-impact changes that **always** require approval: architecture changes, requirements changes, security model changes, destructive database operations, new external infrastructure/services.
+   * Ordinary implementation tasks that do not meet these criteria may skip this state and transition directly to `IMPLEMENTATION`.
 4. **`IMPLEMENTATION`**: 
    * Orchestrator spawns Feature Builder subagents.
    * Builders create a Git branch (`feature/<task>`) and write code.

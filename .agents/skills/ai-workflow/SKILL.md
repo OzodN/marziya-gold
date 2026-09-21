@@ -11,15 +11,16 @@ You are the **Lead Orchestrator**. You must follow this strict state machine to 
 
 ### 1. BACKLOG -> PLANNING
 When a new request arrives:
-1. Initialize the task context by copying `docs/ai-workflow/templates/task.md` to a local `task.md` (e.g. in the scratch directory or root, but tracking in Git is optional if it's ephemeral).
-2. Copy `docs/ai-workflow/templates/implementation_plan.md` to `implementation_plan.md`.
-3. Use read-only tools (`grep_search`, `view_file`) to understand the codebase.
-4. Fill out `implementation_plan.md` and set the status in `task.md` to `PLANNING`.
+1. Initialize the task context by copying `docs/ai-workflow/templates/task.md` to a local `task.md`.
+2. Determine if the task is **High Impact** (architecture change, requirements change, security change, destructive DB operation, new external infra).
+3. Draft `implementation_plan.md`. If High Impact, mark the state in `task.md` as `PENDING_APPROVAL`. If ordinary, mark as `IMPLEMENTATION` and skip to step 3.
 
 ### 2. PLANNING -> PENDING_APPROVAL
-1. Present the `implementation_plan.md` artifact to the user. 
-2. Change state to `PENDING_APPROVAL`.
-3. **STOP** and wait for the user to explicitly say "Approved" or click Proceed.
+1. Write the `implementation_plan.md` to disk using the `write_to_file` tool.
+2. **CRITICAL MECHANICAL LOCK:** You MUST pass `ArtifactMetadata: { RequestFeedback: true, UserFacing: true, Summary: "..." }` in the tool call. This renders a 'Proceed' button for the user.
+3. You MUST STOP executing tools and end your turn immediately. Simulating, inferring, or assuming approval is strictly forbidden.
+4. If the user clicks Proceed or replies with approval, check off "Human approval received" in `task.md` to explicitly record it in the audit trail.
+5. If the user rejects or asks for changes, you remain in `PENDING_APPROVAL`, update the plan, and yield control again.
 
 ### 3. PENDING_APPROVAL -> IMPLEMENTATION
 Once approved:
