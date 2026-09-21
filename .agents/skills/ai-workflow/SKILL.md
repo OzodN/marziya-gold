@@ -35,7 +35,9 @@ Once approved:
      "enable_mcp_tools": false
    }
    ```
-3. Invoke the subagent using `Workspace: "share"`.
+3. Invoke the subagent using `Workspace: "branch"`.
+   * **CRITICAL:** You MUST use `"branch"`. You must NEVER use `"inherit"` or `"share"` for write-capable subagents.
+   * If invoking the subagent fails because a branch workspace cannot be created, you MUST immediately abort and transition the state to `BLOCKED_ESCALATED`.
    Provide the `Prompt` with the implementation plan and instruct it to checkout a new branch:
    `git checkout -b feature/<task-name>`
 

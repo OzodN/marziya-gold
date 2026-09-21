@@ -38,7 +38,7 @@ The system relies on a strict hierarchical delegation model:
 2. **Feature Builder (Dynamic Subagent)**
    * **Role:** Implementation specialist for a specific component or ticket.
    * **Capabilities:** `enable_write_tools = true`, no subagent spawning rights.
-   * **Workspace:** `share` (operates on isolated Git branches without duplicating repo storage).
+   * **Workspace:** `branch` (operates on fully isolated repository clones). `inherit` and `share` modes are strictly forbidden.
 3. **Reviewer / Auditor (Dynamic Subagent)**
    * **Role:** Security, performance, or architectural reviewer.
    * **Capabilities:** `enable_write_tools = false` (Read-only).
@@ -71,8 +71,9 @@ Every task follows a strict state transition model managed in `task.md`.
 
 * **Branching Model:** `main` is the stable, protected branch. All work happens in short-lived `feature/*` or `fix/*` branches.
 * **Workspace Isolation:** 
-  * When executing parallel tasks, the Orchestrator spawns multiple Feature Builders, passing `Workspace: "share"`.
-  * This allows parallel subagents to checkout different Git branches and write code concurrently without filesystem collisions or stomping on the Root Agent's context.
+  * When executing tasks, the Orchestrator spawns Feature Builders using `Workspace: "branch"`.
+  * This creates fully isolated workspace clones, allowing parallel subagents to write code concurrently without any filesystem collisions or stomping on the Root Agent's working tree.
+  * **CRITICAL RULE:** The Root Agent must NEVER allow two write-capable subagents to operate on the same working tree. `Workspace: "inherit"` and `Workspace: "share"` must NEVER be used for write-capable subagents. If a branch workspace cannot be created, the task MUST immediately fail and escalate.
 * **Merge Strategy:** The Orchestrator uses `git merge --no-ff` to preserve feature history, or squashes commits if requested by the user.
 
 ---
