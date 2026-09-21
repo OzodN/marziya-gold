@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-This is a fake conflict
-=======
-This is another fake conflict
->>>>>>> feature
+This is a clean file without conflict markers.
