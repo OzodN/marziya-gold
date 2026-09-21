@@ -59,10 +59,11 @@ Every task follows a strict state transition model managed in `task.md`.
    * Orchestrator spawns Feature Builder subagents.
    * Builders create a Git branch (`feature/<task>`) and write code.
 5. **`VERIFICATION`**: 
-   * Automated tests (`npm test`, `mvn verify`, etc.) run via background tasks.
-   * Loop: Builder fixes code until tests exit with code `0`.
+   * Feature Builder messages the Orchestrator that implementation is complete.
+   * **Root Orchestrator** checks out the feature branch and runs automated tests (`npm test`, `mvn verify`, etc.) via background tasks.
+   * Loop: If tests fail, Orchestrator sends failure logs back to the Builder. Retry up to 3 times.
 6. **`REVIEW`**: Orchestrator (or Reviewer subagent) diffs the feature branch against `main`. 
-7. **`MERGE`**: Orchestrator merges the feature branch into `main`.
+7. **`MERGE`**: Orchestrator merges the feature branch into `main`. Merge is IMPOSSIBLE until independent verification succeeds.
 8. **`DONE`**: Update `task.md` and append to `walkthrough.md`.
 
 ---
@@ -81,10 +82,11 @@ Every task follows a strict state transition model managed in `task.md`.
 ## 6. Verification Loop & CI Strategy
 
 Agents are prone to hallucinating success. The system mandates **Independent Verification**:
-1. Builders cannot mark a state as `VERIFICATION_COMPLETE`.
-2. The Builder must run a designated test command (e.g., `mvn test -Dtest=FeatureTest`).
-3. Only an exit code of `0` satisfies the Definition of Done.
-4. Test suites act as the CI layer. If local test infrastructure is missing, the Orchestrator must mandate its creation *before* feature implementation.
+1. A write-capable subagent must NEVER be trusted to certify its own work.
+2. The Feature Builder may run tests locally for debugging, but its test result is informational only.
+3. The Feature Builder must NOT mark the task as verified and is NOT the authority for the Definition of Done.
+4. After the Feature Builder finishes, the **Root Orchestrator independently runs the verification commands** against the resulting branch.
+5. Only an exit code of `0` from the Orchestrator's verification run satisfies the Definition of Done and permits merging.
 
 ---
 
