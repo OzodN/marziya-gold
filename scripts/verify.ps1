@@ -6,7 +6,7 @@
 Write-Host "Running CI Verification..."
 
 # Example constraint: Ensure no merge conflict markers exist in the tree.
-$conflictMarkers = git grep -l "<<<<<<<"
+$conflictMarkers = git grep -l "^<<<<<<<"
 if ($conflictMarkers) {
     Write-Host "ERROR: Merge conflict markers found in:"
     Write-Host $conflictMarkers
