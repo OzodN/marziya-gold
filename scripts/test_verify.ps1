@@ -10,8 +10,9 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Test 1 Failed"; exit 1 }
 
 Write-Host "`n--- Test 2: Conflict markers should fail ---"
 # Add a tracked file with conflict markers
+$marker = "<" * 7 + " HEAD"
 @"
-<<<<<<< HEAD
+$marker
 conflict
 =======
 >>>>>>> branch

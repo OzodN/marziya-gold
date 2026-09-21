@@ -19,9 +19,9 @@ This document defines the production-grade AI engineering workflow for this work
 * **Orchestrator:** The Root Agent (Lead Architect), operating in the primary workspace.
 * **Workers:** Ephemeral, dynamically defined subagents running in isolated `branch` or `share` workspaces.
 * **State Storage:** 
-  * `task.md` (active checklist/state tracker)
-  * `implementation_plan.md` (proposed architectural changes)
-  * `walkthrough.md` (historical audit of what was done)
+  * `.agents/state/task.md` (active checklist/state tracker)
+  * `.agents/state/implementation_plan.md` (proposed architectural changes)
+  * `.agents/state/walkthrough.md` (historical audit of what was done)
   * `.agents/rules/` (directory-scoped constraints for agent behavior)
 * **Execution Engine:** Local terminal commands (`run_command`) simulating CI/CD loops and independent test execution.
 
@@ -50,10 +50,10 @@ The system relies on a strict hierarchical delegation model:
 
 ## 4. Task Lifecycle (State Machine)
 
-Every task follows a strict state transition model managed in `task.md`.
+Every task follows a strict state transition model managed in `.agents/state/task.md`.
 
 1. **`BACKLOG`**: Unprocessed user request or feature idea.
-2. **`PLANNING`**: Orchestrator researches and drafts `implementation_plan.md`.
+2. **`PLANNING`**: Orchestrator researches and drafts `.agents/state/implementation_plan.md`.
 3. **`PENDING_APPROVAL`**: 
    * **Mechanical Human Gate.** For high-impact changes, the Orchestrator MUST generate `implementation_plan.md` using the `write_to_file` tool with `ArtifactMetadata.RequestFeedback = true`. This mechanically yields control to the user via a 'Proceed' button.
    * High-impact changes that **always** require approval: architecture changes, requirements changes, security model changes, destructive database operations, new external infrastructure/services.
@@ -67,7 +67,7 @@ Every task follows a strict state transition model managed in `task.md`.
    * Loop: If tests fail, Orchestrator sends failure logs back to the Builder. Retry up to 3 times.
 6. **`REVIEW`**: Orchestrator (or Reviewer subagent) diffs the feature branch against `main`. 
 7. **`MERGE`**: Orchestrator merges the feature branch into `main`. Merge is IMPOSSIBLE until independent verification succeeds.
-8. **`DONE`**: Update `task.md` and append to `walkthrough.md`.
+8. **`DONE`**: Update `.agents/state/task.md` and append to `.agents/state/walkthrough.md`.
 
 ---
 

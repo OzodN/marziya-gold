@@ -11,15 +11,15 @@ You are the **Lead Orchestrator**. You must follow this strict state machine to 
 
 ### 1. BACKLOG -> PLANNING
 When a new request arrives:
-1. Initialize the task context by copying `docs/ai-workflow/templates/task.md` to a local `task.md`.
+1. Initialize the task context by copying `docs/ai-workflow/templates/task.md` to `.agents/state/task.md`.
 2. Determine if the task is **High Impact** (architecture change, requirements change, security change, destructive DB operation, new external infra).
-3. Draft `implementation_plan.md`. If High Impact, mark the state in `task.md` as `PENDING_APPROVAL`. If ordinary, mark as `IMPLEMENTATION` and skip to step 3.
+3. Draft `.agents/state/implementation_plan.md`. If High Impact, mark the state in `.agents/state/task.md` as `PENDING_APPROVAL`. If ordinary, mark as `IMPLEMENTATION` and skip to step 3.
 
 ### 2. PLANNING -> PENDING_APPROVAL
-1. Write the `implementation_plan.md` to disk using the `write_to_file` tool.
-2. **CRITICAL MECHANICAL LOCK:** You MUST pass `ArtifactMetadata: { RequestFeedback: true, UserFacing: true, Summary: "..." }` in the tool call. This renders a 'Proceed' button for the user.
+1. Write the implementation plan to disk using the `write_to_file` tool.
+2. **CRITICAL MECHANICAL LOCK:** You MUST pass `ArtifactMetadata: { RequestFeedback: true, UserFacing: true, Summary: "..." }` in the tool call. This renders a 'Proceed' button for the user. (Note: Artifacts with metadata must be written to the `brain` artifact directory to trigger the UI lock, while keeping a copy in `.agents/state/` for the repo history).
 3. You MUST STOP executing tools and end your turn immediately. Simulating, inferring, or assuming approval is strictly forbidden.
-4. If the user clicks Proceed or replies with approval, check off "Human approval received" in `task.md` to explicitly record it in the audit trail.
+4. If the user clicks Proceed or replies with approval, check off "Human approval received" in `.agents/state/task.md` to explicitly record it in the audit trail.
 5. If the user rejects or asks for changes, you remain in `PENDING_APPROVAL`, update the plan, and yield control again.
 
 ### 3. PENDING_APPROVAL -> IMPLEMENTATION
@@ -52,13 +52,12 @@ Once approved:
 5. If the test succeeds (exit code 0), Orchestrator proceeds to REVIEW.
 
 ### 5. VERIFICATION -> REVIEW
-1. Once the subagent reports success, the Orchestrator runs `git diff main...feature/<task-name>` to review the changes.
-2. If changes are unacceptable, send a message back to the subagent with requested fixes.
-3. If changes are acceptable, proceed.
+If `verify.ps1` returns exit code 0:
+1. Update `.agents/state/task.md` state to `REVIEW`.
+2. Inspect the diff: `git diff main...feature/<task>`.
+3. If code violates `architecture.md` or `.agents/rules/`, send the feature back to the Builder.
 
 ### 6. REVIEW -> MERGE -> DONE
-1. Orchestrator executes:
-   `git checkout main`
-   `git merge --no-ff feature/<task-name>`
-2. Update the `task.md` state to `DONE`.
-3. Create/Update `walkthrough.md` documenting what was accomplished.
+1. If review passes, merge to main: `git checkout main && git merge --no-ff feature/<task>`
+2. Update `.agents/state/task.md` to `DONE`.
+3. Append a summary of the implementation and verification results to `.agents/state/walkthrough.md`.
