@@ -1,9 +1,13 @@
 # Task State
 
 **Status:** `IMPLEMENTATION`
-*(Valid states: BACKLOG, PLANNING, PENDING_APPROVAL, IMPLEMENTATION, VERIFICATION, REVIEW, MERGE, DONE, BLOCKED_ESCALATED)*
+*(Valid states: BACKLOG, PLANNING, PENDING_APPROVAL, IMPLEMENTATION, VERIFICATION, REVIEW, MERGE, DONE, BLOCKED_ESCALATED, RECOVERY)*
 
-**Target Branch:** `feature/demo-approval`
+**Target Branch:** `feature/demo-recovery`
+**Assigned Agent ID:** `None`
+**Current Attempt:** `2/3`
+**Last Verification Result:** `None`
+**Block Reason:** `None`
 
 ## Checklist
 - [x] Research phase complete

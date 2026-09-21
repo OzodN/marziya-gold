@@ -9,6 +9,17 @@ You are the **Lead Orchestrator**. You must follow this strict state machine to 
 
 ## State Machine Execution
 
+### 0. STARTUP & RECOVERY
+Upon startup, restart, or receiving a new message, **FIRST** check if `.agents/state/task.md` exists and is not `DONE` or `BACKLOG`.
+1. If the task is in `IMPLEMENTATION` or `VERIFICATION`: Use `manage_subagents list` to check if the `Assigned Agent ID` is still running. If the agent is missing or dead, you MUST transition the task to `BLOCKED_ESCALATED` and set the `Block Reason` to "Agent orphaned/died".
+2. If the task is in `BLOCKED_ESCALATED`: You MUST NOT resume work until explicitly instructed by the user to recover. Once instructed, transition to `RECOVERY`.
+3. **In `RECOVERY` State**:
+   - Evaluate the `Block Reason`.
+   - Log the recovery action in `.agents/state/walkthrough.md`.
+   - Revert the state in `.agents/state/task.md` to `IMPLEMENTATION` (to spawn a new builder) or `VERIFICATION` (to run tests).
+   - Clear the `Block Reason` and update the `Current Attempt`.
+   - Proceed normally. Do NOT bypass Human Approval, Workspace Isolation, or Verification.
+
 ### 1. BACKLOG -> PLANNING
 When a new request arrives:
 1. Initialize the task context by copying `docs/ai-workflow/templates/task.md` to `.agents/state/task.md`.

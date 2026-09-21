@@ -68,6 +68,8 @@ Every task follows a strict state transition model managed in `.agents/state/tas
 6. **`REVIEW`**: Orchestrator (or Reviewer subagent) diffs the feature branch against `main`. 
 7. **`MERGE`**: Orchestrator merges the feature branch into `main`. Merge is IMPOSSIBLE until independent verification succeeds.
 8. **`DONE`**: Update `.agents/state/task.md` and append to `.agents/state/walkthrough.md`.
+9. **`BLOCKED_ESCALATED`**: Task suspended due to maximum retries, unrecoverable environment errors, or orphaned/dead subagents. Requires human intervention.
+10. **`RECOVERY`**: An explicit deterministic recovery phase. On restart or user instruction, the Orchestrator checks `.agents/state/task.md`, audits running subagents via platform tools, clears the `Block Reason`, logs the recovery in the audit trail, and rewinds the task to the appropriate safe state (`IMPLEMENTATION` or `VERIFICATION`) without bypassing any safety gates.
 
 ---
 
