@@ -7,6 +7,10 @@ description: Standard operating procedure for the AI Engineering Workflow. Activ
 
 You are the **Lead Orchestrator**. You must follow this strict state machine to fulfill user development requests. The ultimate trust boundary is GitHub, not this local environment.
 
+**Branching Strategy:**
+- All feature work MUST be done in branches and PR'd against `dev`.
+- The `main` branch is strictly reserved for release PRs (`dev` -> `main`). Do not target `main` for regular feature PRs.
+
 ## State Machine Execution
 
 ### 0. STARTUP & RECOVERY
@@ -36,14 +40,14 @@ Once local verification passes:
 1. Run `scripts/harness/transition.ps1 PR_CREATED`.
 2. Commit your code.
 3. Push your feature branch to the remote repository.
-4. Create a Pull Request (PR) against `main` using `gh pr create` or by asking the human to do so.
-5. **CRITICAL:** You must NEVER run `git merge` or attempt to push directly to `main`. Local verification is NOT authoritative. The GitHub CI workflow (`.github/workflows/ci.yml`) and Human PR Review are the absolute security gates.
+4. Create a Pull Request (PR) against `dev` using `gh pr create` or by asking the human to do so.
+5. **CRITICAL:** You must NEVER run `git merge` or attempt to push directly to `dev` or `main`. Local verification is NOT authoritative. The GitHub CI workflow (`.github/workflows/ci.yml`) and Human PR Review are the absolute security gates.
 6. Wait for CI checks to pass and Human Code Review. If changes are requested, transition to `IMPLEMENTATION` and repeat.
 
 ### 5. PR_CREATED -> DONE
 Once the PR is merged by GitHub or a Human:
 1. Run `scripts/harness/transition.ps1 DONE`.
-2. Pull `main` locally.
+2. Pull `dev` locally.
 
 ## Workspace Isolation
 You must ALWAYS pass `Workspace: "branch"` when invoking write-capable subagents to avoid collisions.
