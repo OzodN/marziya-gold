@@ -1,0 +1,38 @@
+{
+    "current_state":  "BLOCKED_ESCALATED",
+    "current_phase":  1,
+    "workstreams":  {
+                        "WS-1":  {
+                                     "status":  "PENDING",
+                                     "depends_on":  [
+
+                                                    ],
+                                     "attempts":  0
+                                 },
+                        "WS-2":  {
+                                     "status":  "PENDING",
+                                     "depends_on":  [
+
+                                                    ],
+                                     "attempts":  0
+                                 },
+                        "WS-3":  {
+                                     "status":  "PENDING",
+                                     "depends_on":  [
+                                                        "WS-1",
+                                                        "WS-2"
+                                                    ],
+                                     "attempts":  0
+                                 }
+                    },
+    "verification":  {
+                         "passed":  false,
+                         "exit_code":  -1,
+                         "timestamp":  ""
+                     },
+    "pr_info":  {
+                    "number":  null,
+                    "url":  "",
+                    "status":  ""
+                }
+}

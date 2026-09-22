@@ -1,0 +1,68 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for Maven (Java Backend)
+        id: check_mvn
+        run: |
+          if [ -f "pom.xml" ]; then
+            echo "has_mvn=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_mvn=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up JDK 17
+        if: steps.check_mvn.outputs.has_mvn == 'true'
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and Test Maven
+        if: steps.check_mvn.outputs.has_mvn == 'true'
+        run: mvn verify -B
+
+      - name: Check for NPM (Node.js Frontend)
+        id: check_npm
+        run: |
+          if [ -f "package.json" ]; then
+            echo "has_npm=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_npm=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Node.js
+        if: steps.check_npm.outputs.has_npm == 'true'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install and Test NPM
+        if: steps.check_npm.outputs.has_npm == 'true'
+        run: |
+          npm ci
+          npm test
+
+      - name: Git Conflict Markers Check
+        run: |
+          if git grep -lE "<{7}( |$)" 2>/dev/null; then
+            echo "ERROR: Merge conflict markers found."
+            exit 1
+          fi
+          echo "No conflict markers found."
