@@ -9,13 +9,15 @@ Harness v3 resolves this by moving the ultimate authority (the Trust Boundary) t
 
 ## 2. GitHub as Trust Boundary
 The target workflow shifts from local agent-driven merges to a strictly controlled Pull Request (PR) model:
-`Feature Branch` → `Pull Request` → `GitHub Actions CI` → `Required Status Checks` → `Human Approval` → `Protected Main` → `Merge`
+`Feature Branch` → `Pull Request` → `GitHub Actions CI` → `Required Status Checks` → `Human Approval` → `Protected dev` → `Merge`
+
+*(Note: `main` is strictly reserved for release PRs `dev` → `main`. All regular feature work must target `dev`.)*
 
 *   **Required Checks:** GitHub Actions CI workflow must pass (exit 0).
 *   **Required Approvals:** At least 1 human reviewer must approve the PR.
 *   **Merge Rights:** Only designated human Code Owners (or GitHub auto-merge) have merge rights. 
 *   **Admin Privileges:** The AI agent **MUST NOT** have Admin or Bypass permissions on the repository. It operates with standard contributor write access to push feature branches.
-*   **Protection of `main`:** The `main` branch is protected by server-side Branch Protection Rules, preventing direct pushes and bypassing of rules.
+*   **Protection of `dev`:** The `dev` branch is protected by server-side Branch Protection Rules, preventing direct pushes and bypassing of rules.
 *   **Enforcement:** Merges are mechanically blocked by GitHub's servers if rules are violated. `MECHANICALLY ENFORCED`.
 
 ## 3. Independent Verification (Remote CI)
@@ -29,7 +31,7 @@ Remote CI (`.github/workflows/ci.yml`) must execute:
 ## 4. Human Approval
 The chat-based `APPROVED` mechanism (from Harness v1/v2) is deprecated as a security gate and replaced by **GitHub Pull Request Reviews**.
 *   **Architecture/Requirements:** High-level plans can still be reviewed locally via chat, but the *enforcement* happens at the PR level. If an agent builds something architecturally unsound, the human rejects the PR.
-*   **Code Review (Merge to Main):** Requires explicit GitHub PR approval.
+*   **Code Review (Merge to dev):** Requires explicit GitHub PR approval.
 *   **Production Deployment:** Requires human approval on GitHub Environments/Deployments.
 
 ## 5. Local `execution.json`
@@ -39,11 +41,11 @@ The chat-based `APPROVED` mechanism (from Harness v1/v2) is deprecated as a secu
 
 ## 6. Local Merge vs Remote Merge
 The Root Agent **will no longer execute `git merge`**.
-*   **Target Workflow:** Root Agent implements code → Pushes feature branch → Opens/Updates PR (via GitHub API or `gh` CLI) → Waits for CI + Human → Human (or GitHub Auto-Merge) merges into `main`.
+*   **Target Workflow:** Root Agent implements code → Pushes feature branch → Opens/Updates PR (via GitHub API or `gh` CLI) → Waits for CI + Human → Human (or GitHub Auto-Merge) merges into `dev`.
 *   The local `merge.ps1` script and Git hooks are deprecated as security boundaries, as GitHub handles this natively.
 
 ## 7. Minimal CI Pipeline Design (`.github/workflows/ci.yml`)
-*   **Triggers:** `pull_request` (against `main`), `push` (to `main`).
+*   **Triggers:** `pull_request` (against `dev`), `push` (to `dev`).
 *   **Jobs:**
     *   `build`: Compiles backend and frontend.
     *   `test`: Runs unit/integration tests.
@@ -56,12 +58,12 @@ The Root Agent **will no longer execute `git merge`**.
 *   Require a pull request before merging.
 *   Require status checks to pass before merging (CI pipeline jobs).
 *   **Do not allow bypassing the above settings** (Crucial: Agent must not have bypass/admin rights).
-*   Restrict who can push to matching branches (Block direct pushes to `main`).
+*   Restrict who can push to matching branches (Block direct pushes to `dev`).
 
 **SHOULD:**
 *   Require approvals (at least 1 human approval).
 *   Require review from Code Owners.
-*   Block force pushes and deletion of `main`.
+*   Block force pushes and deletion of `dev`.
 
 **OPTIONAL:**
 *   Require signed commits.
@@ -82,7 +84,7 @@ Workspace isolation via the `invoke_subagent` native tool remains **AGENT-DISCIP
 | Independent CI Verification | | ✅ | |
 | PR Code Review | | (Platform) | ✅ |
 | Merge Eligibility Authority | | ✅ | |
-| Merge to Main | | ✅ (or Human) | ✅ |
+| Merge to dev | | ✅ (or Human) | ✅ |
 | Production Deployment | | ✅ | ✅ |
 
 ## 11. Failure & Recovery Model
@@ -99,8 +101,8 @@ Workspace isolation via the `invoke_subagent` native tool remains **AGENT-DISCIP
 | :--- | :--- | :--- |
 | **Direct State Manipulation** | Forging `execution.json` cannot bypass GitHub Branch Protection. | **MECHANICALLY ENFORCED** (by GitHub) |
 | **Hash Bypass (Scripts)** | Tampering local scripts cannot forge remote CI status checks. | **MECHANICALLY ENFORCED** (by GitHub) |
-| **Git Hook Bypass** | Deleting local hooks allows local merges, but pushing the merge to `main` is blocked by GitHub. | **MECHANICALLY ENFORCED** (by GitHub) |
-| **Raw Git Commands** | Direct push to `main` is mechanically rejected by GitHub. | **MECHANICALLY ENFORCED** (by GitHub) |
+| **Git Hook Bypass** | Deleting local hooks allows local merges, but pushing the merge to `dev` is blocked by GitHub. | **MECHANICALLY ENFORCED** (by GitHub) |
+| **Raw Git Commands** | Direct push to `dev` is mechanically rejected by GitHub. | **MECHANICALLY ENFORCED** (by GitHub) |
 | **Verification Bypass** | Agent modifying local `verify.ps1` cannot bypass the remote `.github/workflows/ci.yml`. | **MECHANICALLY ENFORCED** (by GitHub) |
 | **Approval Bypass** | Local script bypass is irrelevant; GitHub requires human PR approval. | **MECHANICALLY ENFORCED** (by GitHub) |
 | **Workstream DAG Bypass** | Agent can still bypass local DAG orchestration. | **PARTIALLY ENFORCED** (Local only) |
